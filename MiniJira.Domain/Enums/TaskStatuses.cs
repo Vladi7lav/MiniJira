@@ -1,9 +1,8 @@
-namespace MiniJira.Domain.Enums
+namespace MiniJira.Domain.Enums;
+
+public enum TaskStatuses
 {
-    public enum TaskStatuses
-    {
-        ToDo,
-        InProgress,
-        Done
-    }
+    ToDo,
+    InProgress,
+    Done
 }

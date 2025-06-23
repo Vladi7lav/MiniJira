@@ -1,4 +1,3 @@
-using System;
 using MiniJira.Domain.Entities;
 using MiniJira.Domain.Enums;
 
@@ -31,7 +30,7 @@ public static class TaskConverter
             LastUpdatedAt = task.LastUpdatedAt
         };
     }
-    
+
     private static TaskStatuses ToDomainStatus(this string status)
     {
         return status switch

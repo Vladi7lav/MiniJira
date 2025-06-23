@@ -1,8 +1,7 @@
-namespace MiniJira.Domain.Enums
+namespace MiniJira.Domain.Enums;
+
+public enum UserRoles
 {
-    public enum UserRoles
-    {
-        Customer,
-        Manager
-    }
+    Customer,
+    Manager
 }

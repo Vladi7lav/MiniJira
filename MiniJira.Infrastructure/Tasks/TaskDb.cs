@@ -1,5 +1,3 @@
-using System;
-
 namespace MiniJira.Infrastructure.Tasks;
 
 public class TaskDb

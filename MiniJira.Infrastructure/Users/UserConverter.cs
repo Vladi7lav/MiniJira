@@ -1,4 +1,3 @@
-using System;
 using MiniJira.Domain.Entities;
 using MiniJira.Domain.Enums;
 
@@ -29,7 +28,7 @@ public static class UserConverter
             MidName = user.MidName
         };
     }
-    
+
     private static UserRoles ToDomainRole(this string role)
     {
         return role switch
