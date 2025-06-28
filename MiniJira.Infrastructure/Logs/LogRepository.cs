@@ -28,16 +28,17 @@ public class LogRepository : ILogRepository
         await connection.ExecuteAsync(command);
     }
 
-    public async Task<LogEntity[]> GetLogsByTaskId(int taskId, CancellationToken cancellationToken)
+    public async Task<LogEntity[]> GetLogsByTaskId(long taskId, CancellationToken cancellationToken)
     {
         var command = new CommandDefinition(
             """
             select
                 task_id as TaskId,
                 description as Description,
-                changed_task_user_id as UserNameWhoChanged,
+                u.login as UserNameWhoChanged,
                 created_at as ActionDate
-            from tasks_logs
+            from tasks_logs tl
+            left join users u on tl.changed_task_user_id = u.user_id
             where task_id = @taskId;
             """,
             new

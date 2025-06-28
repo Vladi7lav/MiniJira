@@ -1,21 +1,23 @@
 using MiniJira.Domain.Entities;
 using MiniJira.Domain.Enums;
+using MiniJira.DomainServices.SharedContracts;
 
-namespace MiniJira.Repository;
+namespace MiniJira.DomainServices.Services.Tasks;
 
-public interface ITaskRepository
+public interface ITaskService
 {
     Task CreateTask(TaskEntity task, int managerId, CancellationToken cancellationToken);
 
-    Task UpdateTaskStatus(long taskId, TaskStatuses status, CancellationToken cancellationToken);
+    Task<SimpleOperationResult> UpdateTaskStatus(long taskId, TaskStatuses status, int userId, CancellationToken cancellationToken);
 
-    Task UpdateTask(
+    Task<SimpleOperationResult> UpdateTask(
         long taskId,
+        int userId,
         int? projectNumber,
         string? name,
         string? description,
-        int? managerId,
-        int? customerId,
+        string? managerLogin,
+        string? customerLogin,
         CancellationToken cancellationToken);
 
     Task<TaskEntity[]> GetTasksByCustomerId(int customerId, TaskStatuses? status, CancellationToken cancellationToken);
@@ -24,6 +26,8 @@ public interface ITaskRepository
     Task<TaskEntity[]> GetTasksByStatus(TaskStatuses status, CancellationToken cancellationToken);
     Task<TaskEntity[]> GetTasksByPartNameOrName(string taskPartName, CancellationToken cancellationToken);
     Task<TaskEntity?> GetTaskById(long taskId, CancellationToken cancellationToken);
+    Task<TaskWithLogsEntity> GetTaskByIdWithLogs(long taskId, CancellationToken cancellationToken);
+    Task<LogEntity[]> GetLogsByTaskId(long taskId, CancellationToken cancellationToken);
 
-    Task DeleteTask(long taskId, CancellationToken cancellationToken);
+    Task DeleteTask(long taskId, int userId, CancellationToken cancellationToken);
 }

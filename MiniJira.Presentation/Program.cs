@@ -1,9 +1,11 @@
+using MiniJira.DomainServices;
 using MiniJira.Infrastructure;
-using MiniJira.Presentation.Workers;
+using MiniJira.Presentation.Interfaces;
+using MiniJira.Presentation.UserInterfaceServices;
 
 namespace MiniJira.Presentation;
 
-public class Program
+public static class Program
 {
     public static async Task Main(string[] args)
     {
@@ -11,6 +13,10 @@ public class Program
             .ConfigureServices((hostContext, services) =>
             {
                 InfrastructureRegistrar.Configure(services);
+                DomainServicesRegistrar.Configure(services);
+                services.AddSingleton<IAuthenticationService, AuthenticationService>();
+                services.AddSingleton<IUserInterfaceActionsService, UserInterfaceActionsService>();
+                services.AddSingleton<ITaskInterfaceActionsService, TaskInterfaceActionsService>();
                 services.AddHostedService<MainInterfaceWorker>();
             });
         var app = builder.Build();

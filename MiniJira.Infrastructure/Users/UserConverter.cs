@@ -23,9 +23,11 @@ public static class UserConverter
             Login = user.Login,
             Password = user.Password,
             Role = user.Role.ToDomainRole(),
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            MidName = user.MidName
+            Firstname = user.Firstname,
+            Lastname = user.Lastname,
+            Midname = user.Midname,
+            CreatedAt = user.CreatedAt,
+            LastChangePasswordDate = user.LastChangePasswordDate
         };
     }
 

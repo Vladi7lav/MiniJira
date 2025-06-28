@@ -6,9 +6,9 @@ public interface IUserRepository
 {
     Task CreateUser(UserEntity user, CancellationToken cancellationToken);
     Task ChangeUserPassword(int userId, string newPassword, CancellationToken cancellationToken);
-    Task<int?> TryGetUserIdByLogin(string login, CancellationToken cancellationToken);
-    Task<UserEntity?> TryGetUserByLogin(string login, CancellationToken cancellationToken);
-    Task<UserShortInfoEntity[]> GetUsersWithoutActiveTasks(CancellationToken cancellationToken);
-    Task UpdateUserName(int userId, string newFirstName, string newMidName, string newLastName, CancellationToken cancellationToken);
+    Task<int?> GetUserIdByLogin(string login, CancellationToken cancellationToken);
+    Task<UserEntity?> GetUserByLogin(string login, CancellationToken cancellationToken);
+    Task<UserBaseInfoEntity[]> GetUsersWithoutActiveTasks(CancellationToken cancellationToken);
+    Task UpdateUserName(string login, string? newFirstName, string? newMidName, string? newLastName, CancellationToken cancellationToken);
     Task DeleteUser(string login, CancellationToken cancellationToken);
 }

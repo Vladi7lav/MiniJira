@@ -27,6 +27,7 @@ public class TaskRepository : ITaskRepository
             	u.id
             FROM users AS u
             WHERE u.login = @customerLogin
+            returning tasks.id
             """,
             new
             {
@@ -38,7 +39,7 @@ public class TaskRepository : ITaskRepository
             },
             cancellationToken: cancellationToken);
         using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
-        await connection.ExecuteAsync(command);
+        task.Id = await connection.QueryFirstOrDefaultAsync<int>(command);
     }
 
     public async Task UpdateTaskStatus(long taskId, TaskStatuses status, CancellationToken cancellationToken)
@@ -46,7 +47,7 @@ public class TaskRepository : ITaskRepository
         var command = new CommandDefinition(
             """
             UPDATE tasks
-            SET status = @status
+            SET status = @status, last_updated_at = now()
             WHERE task_id = @taskId
             """,
             new
@@ -100,7 +101,7 @@ public class TaskRepository : ITaskRepository
             queryParameters.Add("customerId", customerId);
         }
 
-        var queryText = "UPDATE tasks SET " + string.Join(", ", setters) + " WHERE task_id = @taskId;";
+        var queryText = "UPDATE tasks SET last_updated_at = now()," + string.Join(", ", setters) + " WHERE task_id = @taskId;";
         queryParameters.Add("taskId", taskId);
 
         var command = new CommandDefinition(
@@ -143,7 +144,7 @@ public class TaskRepository : ITaskRepository
         return (await connection.QueryAsync<TaskDb>(command)).Select(t => t.ToTaskEntity()).ToArray();
     }
 
-    public async Task<TaskEntity[]> GetTasksByCustomerLogin(int customerLogin, TaskStatuses? status, CancellationToken cancellationToken)
+    public async Task<TaskEntity[]> GetTasksByCustomerLogin(string customerLogin, TaskStatuses? status, CancellationToken cancellationToken)
     {
         var queryText =
             """
@@ -207,7 +208,61 @@ public class TaskRepository : ITaskRepository
         return (await connection.QueryAsync<TaskDb>(command)).Select(t => t.ToTaskEntity()).ToArray();
     }
 
-    public async Task<TaskEntity?> GetTaskById(int taskId, CancellationToken cancellationToken)
+    public async Task<TaskEntity[]> GetTasksByStatus(TaskStatuses status, CancellationToken cancellationToken)
+    {
+        var queryText =
+            """
+            SELECT
+                t.id as Id,
+                project_number as ProjectNumber,
+                name,
+                description,
+                status,
+                m.login as Manager,
+                c.login as Customer,
+                t.created_at as CreatedAt,
+                t.last_updated_at as LastUpdatedAt
+            FROM users as m
+            INNER JOIN tasks as t on t.manager_id = m.id
+            INNER JOIN users as c on c.id = t.customer_id
+            WHERE t.status = @status::task_statuses
+            """;
+        var queryParameters = new DynamicParameters();
+        queryParameters.Add("status", status.ToDbStatus());
+
+        var command = new CommandDefinition(queryText, queryParameters, cancellationToken: cancellationToken);
+        using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
+        return (await connection.QueryAsync<TaskDb>(command)).Select(t => t.ToTaskEntity()).ToArray();
+    }
+    
+    public async Task<TaskEntity[]> GetTasksByPartNameOrName(string taskPartName, CancellationToken cancellationToken)
+    {
+        var queryText =
+            """
+            SELECT
+                t.id as Id,
+                project_number as ProjectNumber,
+                name,
+                description,
+                status,
+                m.login as Manager,
+                c.login as Customer,
+                t.created_at as CreatedAt,
+                t.last_updated_at as LastUpdatedAt
+            FROM users as m
+            INNER JOIN tasks as t on t.manager_id = m.id
+            INNER JOIN users as c on c.id = t.customer_id
+            WHERE lower(t.name) like '%@taskPartName%'
+            """;
+        var queryParameters = new DynamicParameters();
+        queryParameters.Add("taskPartName", taskPartName.ToLower());
+
+        var command = new CommandDefinition(queryText, queryParameters, cancellationToken: cancellationToken);
+        using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
+        return (await connection.QueryAsync<TaskDb>(command)).Select(t => t.ToTaskEntity()).ToArray();
+    }
+
+    public async Task<TaskEntity?> GetTaskById(long taskId, CancellationToken cancellationToken)
     {
         var command = new CommandDefinition(
             """
@@ -232,7 +287,7 @@ public class TaskRepository : ITaskRepository
             },
             cancellationToken: cancellationToken);
         using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
-        return (await connection.QueryFirstOrDefaultAsync<TaskDb>(command))?.ToTaskEntity();
+        return (await connection.QueryFirstOrDefaultAsync<TaskDb?>(command))?.ToTaskEntity();
     }
 
     public async Task DeleteTask(long taskId, CancellationToken cancellationToken)

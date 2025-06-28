@@ -18,20 +18,22 @@ public class UserRepository : IUserRepository
                 midname,
                 lastname
             ) values
-            (@login, @password, @role::user_roles, @firstname, @midname, @lastname);
+            (@login, @password, @role::user_roles, @firstname, @midname, @lastname)
+            returning id;
             """,
             new
             {
                 login = user.Login,
                 password = user.Password,
                 role = user.Role.ToDbRole(),
-                firstname = user.FirstName,
-                midname = user.MidName,
-                lastname = user.LastName,
+                firstname = user.Firstname,
+                midname = user.Midname,
+                lastname = user.Lastname,
             },
             cancellationToken: cancellationToken);
         using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
-        await connection.ExecuteAsync(command);
+        var newId = connection.QueryFirstOrDefaultAsync<int>(command).Result;
+        user.Id = newId;
     }
 
     public async Task ChangeUserPassword(int userId, string newPassword, CancellationToken cancellationToken)
@@ -39,7 +41,7 @@ public class UserRepository : IUserRepository
         var command = new CommandDefinition(
             """
             UPDATE users
-            SET password = @password
+            SET password = @password, last_change_password_date = now()
             WHERE userId = @userId;
             """,
             new
@@ -52,7 +54,7 @@ public class UserRepository : IUserRepository
         await connection.ExecuteAsync(command);
     }
 
-    public async Task<int?> TryGetUserIdByLogin(string login, CancellationToken cancellationToken)
+    public async Task<int?> GetUserIdByLogin(string login, CancellationToken cancellationToken)
     {
         var command = new CommandDefinition(
             """
@@ -66,10 +68,10 @@ public class UserRepository : IUserRepository
             },
             cancellationToken: cancellationToken);
         using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
-        return await connection.QueryFirstOrDefaultAsync<int>(command);
+        return await connection.QueryFirstOrDefaultAsync<int?>(command);
     }
 
-    public async Task<UserEntity?> TryGetUserByLogin(string login, CancellationToken cancellationToken)
+    public async Task<UserEntity?> GetUserByLogin(string login, CancellationToken cancellationToken)
     {
         var command = new CommandDefinition(
             """
@@ -77,10 +79,12 @@ public class UserRepository : IUserRepository
                 id,
                 login,
                 password,
-                "role",
+                "role" as Role,
                 firstname,
                 midname,
-                lastname
+                lastname,
+                created_at as CreatedAt,
+                last_change_password_date as LastChangePasswordDate
             FROM users
             WHERE login = @login;
             """,
@@ -90,10 +94,10 @@ public class UserRepository : IUserRepository
             },
             cancellationToken: cancellationToken);
         using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
-        return (await connection.QueryFirstOrDefaultAsync<UserDb>(command))?.ToUserEntity();
+        return (await connection.QueryFirstOrDefaultAsync<UserDb?>(command))?.ToUserEntity();
     }
 
-    public async Task<UserShortInfoEntity[]> GetUsersWithoutActiveTasks(CancellationToken cancellationToken)
+    public async Task<UserBaseInfoEntity[]> GetUsersWithoutActiveTasks(CancellationToken cancellationToken)
     {
         var command = new CommandDefinition(
             """
@@ -116,11 +120,11 @@ public class UserRepository : IUserRepository
             """,
             cancellationToken: cancellationToken);
         using var connection = await DatabaseConnectionHelper.GetOpenConnection(cancellationToken);
-        return (await connection.QueryAsync<UserShortInfoEntity>(command)).ToArray();
+        return (await connection.QueryAsync<UserBaseInfoEntity>(command)).ToArray();
     }
 
     public async Task UpdateUserName(
-        int userId,
+        string login,
         string? newFirstName,
         string? newMidName,
         string? newLastName,
@@ -151,8 +155,8 @@ public class UserRepository : IUserRepository
             queryParameters.Add("newLastname", newLastName);
         }
 
-        var queryText = "UPDATE users SET " + string.Join(", ", setters) + " WHERE userId = @userId;";
-        queryParameters.Add("userId", userId.ToString());
+        var queryText = "UPDATE users SET " + string.Join(", ", setters) + " WHERE login = @login;";
+        queryParameters.Add("login", login);
 
         var command = new CommandDefinition(
             queryText,
