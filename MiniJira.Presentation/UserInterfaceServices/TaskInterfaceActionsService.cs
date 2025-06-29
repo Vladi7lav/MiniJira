@@ -136,14 +136,14 @@ public class TaskInterfaceActionsService : ITaskInterfaceActionsService
     public async Task GetTasksByManagerId(UserEntity currentUser, CancellationToken cancellationToken)
     {
         var status = InputHelper.ReadTaskStatus(
-            "Введите номер статуса задачи или \"Enter\" для того что бы не использовать ограничение по статусу при поиске: ",
+            "Введите номер статуса задачи или \"Enter\" для того что бы не использовать ограничение по статусу при поиске: \n",
             true);
         var tasks = await _taskService.GetTasksByManagerId(currentUser.Id, status, cancellationToken);
 
         if (tasks.Length == 0)
         {
             Console.WriteLine($"Задачи для менеджера с Id: {currentUser.Id} {(status == null ? string.Empty : $"и статусом: {status.Value.ToRuString()}")} не найдены.");
-            return;
+            Environment.Exit(0);
         }
 
         foreach (var task in tasks)
@@ -219,15 +219,15 @@ public class TaskInterfaceActionsService : ITaskInterfaceActionsService
 
     private static void ShowTaskInfo(TaskEntity task)
     {
-        Console.WriteLine($"ID: {task.Id}, Название: {task.Name}, Номер проекта: {task.ProjectNumber}, Статус: {task.Status.ToRuString()}");
+        Console.WriteLine($"\nID: {task.Id}, Название: {task.Name}, Номер проекта: {task.ProjectNumber}, Статус: {task.Status.ToRuString()}");
         Console.WriteLine($"Менеджер: {task.Manager}, Исполнитель: {task.Customer}");
-        Console.WriteLine($"Дата создания: {task.CreatedAt}, Дата последнего обновления: {task.LastUpdatedAt}");
+        Console.WriteLine($"Дата создания: {task.CreatedAt}, Дата последнего обновления: {(task.LastUpdatedAt?.ToString() ?? "Отсутствует")}");
         Console.WriteLine($"Описание: {task.Description}");
     }
     
     private static void ShowTaskShortInfo(TaskEntity task)
     {
-        Console.WriteLine($"ID: {task.Id}, Название: {task.Name}, Номер проекта: {task.ProjectNumber}, Статус: {task.Status.ToRuString()}, Исполнитель: {task.Customer}");
+        Console.WriteLine($"\nID: {task.Id}, Название: {task.Name}, Номер проекта: {task.ProjectNumber}, Статус: {task.Status.ToRuString()}, Исполнитель: {task.Customer}");
     }
     
     private static void ShowLogs(LogEntity[] logs)
@@ -237,6 +237,7 @@ public class TaskInterfaceActionsService : ITaskInterfaceActionsService
             Console.WriteLine("Логи не найдены");
         }
         
+        Console.WriteLine("\n");
         foreach (var log in logs.OrderBy(l => l.ActionDate))
         {
             Console.WriteLine($"Время: {log.ActionDate} Пользователь: {log.UserNameWhoChanged}, Описание: {log.Description}");

@@ -26,6 +26,7 @@ public static class TaskConverter
             Description = task.Description,
             Status = task.Status.ToDomainStatus(),
             Manager = task.Manager,
+            Customer = task.Customer,
             CreatedAt = task.CreatedAt,
             LastUpdatedAt = task.LastUpdatedAt
         };

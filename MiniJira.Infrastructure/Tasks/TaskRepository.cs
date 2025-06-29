@@ -279,7 +279,7 @@ public class TaskRepository : ITaskRepository
             FROM tasks as t
             inner join users as c on c.id = t.customer_id
             inner join users as m on m.id = t.manager_id
-            WHERE id = @taskId;
+            WHERE t.id = @taskId;
             """,
             new
             {

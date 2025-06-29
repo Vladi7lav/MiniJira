@@ -36,9 +36,9 @@ public class LogRepository : ILogRepository
                 task_id as TaskId,
                 description as Description,
                 u.login as UserNameWhoChanged,
-                created_at as ActionDate
+                tl.created_at as ActionDate
             from tasks_logs tl
-            left join users u on tl.changed_task_user_id = u.user_id
+            left join users u on tl.changed_task_user_id = u.id
             where task_id = @taskId;
             """,
             new

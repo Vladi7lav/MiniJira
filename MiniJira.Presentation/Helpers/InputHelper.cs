@@ -80,7 +80,7 @@ public static class InputHelper
         }
     }
 
-    public static UserRoles ReadUserRole(string messageForUser = "Введите номер роли пользователя: ")
+    public static UserRoles ReadUserRole(string messageForUser = "Введите номер роли пользователя: \n")
     {
         var userRoles = Enum.GetValues(typeof(UserRoles));
         var sb = new StringBuilder(messageForUser);
@@ -93,7 +93,7 @@ public static class InputHelper
         return (UserRoles)ReadInputIntFromList(fullMessage,  userRolesIntVariants);
     }
     
-    public static TaskStatuses? ReadTaskStatus(string messageForUser = "Введите номер статуса задачи: ", bool nullable = false)
+    public static TaskStatuses? ReadTaskStatus(string messageForUser = "Введите номер статуса задачи: \n", bool nullable = false)
     {
         var taskStatuses = Enum.GetValues(typeof(UserRoles));
         var sb = new StringBuilder(messageForUser);
@@ -104,8 +104,8 @@ public static class InputHelper
         var fullMessage = sb.ToString();
         var taskStatusesIntVariants = taskStatuses.Cast<int>().ToArray();
         return nullable 
-            ? (TaskStatuses)ReadInputIntFromList(fullMessage, taskStatusesIntVariants)
-            : (TaskStatuses?)ReadInputIntFromListOrNull(fullMessage, taskStatusesIntVariants);
+            ? (TaskStatuses?)ReadInputIntFromListOrNull(fullMessage, taskStatusesIntVariants)
+            : (TaskStatuses)ReadInputIntFromList(fullMessage, taskStatusesIntVariants);
     }
     
     public static long ReadInputLong(string messageForUser)

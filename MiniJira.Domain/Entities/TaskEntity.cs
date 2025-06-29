@@ -12,5 +12,5 @@ public class TaskEntity
     public string Manager { get; set; }
     public string Customer { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime LastUpdatedAt { get; set; }
+    public DateTime? LastUpdatedAt { get; set; }
 }
