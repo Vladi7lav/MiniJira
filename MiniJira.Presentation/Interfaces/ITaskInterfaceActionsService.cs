@@ -41,6 +41,6 @@ public interface ITaskInterfaceActionsService
     [AccessByRole([UserRoles.Customer, UserRoles.Manager], "Получить историю изменений задачи по её Id", 10)]
     Task GetLogsByTaskId(CancellationToken cancellationToken);
 
-    [AccessByRole([UserRoles.Customer, UserRoles.Manager], "Удалить задачу по Id", 11)]
+    [AccessByRole(UserRoles.Manager, "Удалить задачу по Id", 11)]
     Task DeleteTaskById(UserEntity currentUser, CancellationToken cancellationToken);
 }
